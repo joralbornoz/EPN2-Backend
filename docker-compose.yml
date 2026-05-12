@@ -1,7 +1,6 @@
 services:
   mysql-db:
-    # Ajuste para usar tu base de datos personalizada con tablas pre-cargadas
-    build: ./db  
+    build: ./db  # RÚBRICA IE1: Base de datos personalizada
     container_name: epn2-db
     restart: always
     environment:
@@ -12,11 +11,10 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      # RÚBRICA IE2: Persistencia mediante Named Volume
-      - epn2_db_data:/var/lib/mysql
+      - epn2_db_data:/var/lib/mysql # RÚBRICA IE2: Persistencia
 
   ventas-api:
-    build: ./backend/Springboot-API-REST
+    build: ./Springboot-API-REST # RUTA CORREGIDA
     container_name: ventas-api
     ports:
       - "8081:8081"
@@ -30,7 +28,7 @@ services:
       - mysql-db
 
   despachos-api:
-    build: ./backend/Springboot-API-REST-DESPACHO
+    build: ./Springboot-API-REST-DESPACHO # RUTA CORREGIDA
     container_name: despachos-api
     ports:
       - "8080:8080"
@@ -44,5 +42,4 @@ services:
       - mysql-db
 
 volumes:
-  # Definición requerida para el punto IE2 de la rúbrica
   epn2_db_data:

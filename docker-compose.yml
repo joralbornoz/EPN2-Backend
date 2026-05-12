@@ -1,0 +1,48 @@
+services:
+  mysql-db:
+    # Ajuste para usar tu base de datos personalizada con tablas pre-cargadas
+    build: ./db  
+    container_name: epn2-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: epn2_db
+      MYSQL_USER: epn2_user
+      MYSQL_PASSWORD: epn2_password
+    ports:
+      - "3306:3306"
+    volumes:
+      # RÚBRICA IE2: Persistencia mediante Named Volume
+      - epn2_db_data:/var/lib/mysql
+
+  ventas-api:
+    build: ./back-Ventas_SpringBoot
+    container_name: ventas-api
+    ports:
+      - "8081:8081"
+    environment:
+      - DB_ENDPOINT=mysql-db
+      - DB_PORT=3306
+      - DB_NAME=epn2_db
+      - DB_USERNAME=epn2_user
+      - DB_PASSWORD=epn2_password
+    depends_on:
+      - mysql-db
+
+  despachos-api:
+    build: ./back-Despachos_SpringBoot
+    container_name: despachos-api
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_ENDPOINT=mysql-db
+      - DB_PORT=3306
+      - DB_NAME=epn2_db
+      - DB_USERNAME=epn2_user
+      - DB_PASSWORD=epn2_password
+    depends_on:
+      - mysql-db
+
+volumes:
+  # Definición requerida para el punto IE2 de la rúbrica
+  epn2_db_data:

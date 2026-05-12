@@ -1,4 +1,5 @@
 name: Deploy Backend EPN2
+
 on:
   push:
     branches: [ "deploy" ]
@@ -16,17 +17,23 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build APIs y DB
+      - name: Build APIs y DB personalizada
         run: |
-          # Construimos usando el docker-compose del repo
+          # 1. Construimos las imágenes usando el docker-compose del repositorio
+          # Esto valida el ítem IE1 de la rúbrica (Contenedorización)
           docker compose build
           
-          # Etiquetamos para Docker Hub usando tu secreto de usuario
+          # 2. Etiquetamos las imágenes para tu repositorio de Docker Hub (joralbornozm)
+          # NOTA: Docker usa el nombre del repo en minúsculas como prefijo (epn2-backend-)
+          
           docker tag epn2-backend-ventas-api ${{ secrets.DOCKER_USERNAME }}/epn2-ventas:latest
           docker tag epn2-backend-despachos-api ${{ secrets.DOCKER_USERNAME }}/epn2-despachos:latest
-          docker tag epn2-db ${{ secrets.DOCKER_USERNAME }}/epn2-db:latest
           
-          # Subimos las 3 imágenes (Validación solicitada por el profe)
+          # Importante: El servicio de la base de datos se llama mysql-db en el compose
+          docker tag epn2-backend-mysql-db ${{ secrets.DOCKER_USERNAME }}/epn2-db:latest
+          
+          # 3. Subimos las 3 imágenes a docker hub
+          # RÚBRICA IE3: Publicación en repositorio de imágenes
           docker push ${{ secrets.DOCKER_USERNAME }}/epn2-ventas:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/epn2-despachos:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/epn2-db:latest

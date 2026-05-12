@@ -1,6 +1,8 @@
 services:
   mysql-db:
-    build: ./db  # RÚBRICA IE1: Base de datos personalizada
+    # RÚBRICA IE1: Base de datos personalizada
+    build: ./db
+    image: joralbornozm/epn2-db:latest
     container_name: epn2-db
     restart: always
     environment:
@@ -11,10 +13,12 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - epn2_db_data:/var/lib/mysql # RÚBRICA IE2: Persistencia
+      # RÚBRICA IE2: Persistencia con Named Volume
+      - epn2_db_data:/var/lib/mysql
 
   ventas-api:
-    build: ./Springboot-API-REST # RUTA CORREGIDA
+    build: ./Springboot-API-REST
+    image: joralbornozm/epn2-ventas:latest
     container_name: ventas-api
     ports:
       - "8081:8081"
@@ -28,7 +32,8 @@ services:
       - mysql-db
 
   despachos-api:
-    build: ./Springboot-API-REST-DESPACHO # RUTA CORREGIDA
+    build: ./Springboot-API-REST-DESPACHO
+    image: joralbornozm/epn2-despachos:latest
     container_name: despachos-api
     ports:
       - "8080:8080"

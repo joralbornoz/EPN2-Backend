@@ -1,7 +1,8 @@
-version: '3.8'
-
+# Quitamos la línea 'version' porque ya no es necesaria en versiones modernas
 services:
   mysql-db:
+    # Ruta a la carpeta que tiene el Dockerfile de la DB
+    build: ./db 
     image: joralbornozm/epn2-db:latest
     container_name: epn2-db
     restart: always
@@ -9,47 +10,49 @@ services:
       MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: epn2_db
     networks:
-      - epn2-network # Conectado al puente
+      - epn2-network
     ports:
       - "3306:3306"
     volumes:
       - epn2_db_data:/var/lib/mysql
 
   ventas-api:
+    # Ruta a la carpeta de la API de Ventas
+    build: ./Springboot-API-REST 
     image: joralbornozm/epn2-ventas:latest
     container_name: ventas-api
     restart: on-failure
     depends_on:
       - mysql-db
     networks:
-      - epn2-network # Conectado al puente
+      - epn2-network
     ports:
       - "8081:8081"
 
   despachos-api:
+    # Ruta a la carpeta de la API de Despachos
+    build: ./Springboot-API-REST-DESPACHO 
     image: joralbornozm/epn2-despachos:latest
     container_name: despachos-api
     restart: on-failure
     depends_on:
       - mysql-db
     networks:
-      - epn2-network # Conectado al puente
+      - epn2-network
     ports:
       - "8080:8080"
 
   epn2-frontend-app:
+    # Si el frontend está en otra carpeta, ajusta esta ruta
+    # Por ahora, si solo quieres el backend, puedes comentar esto
     image: joralbornozm/epn2-frontend:latest
     container_name: epn2-frontend-app
     restart: always
     ports:
       - "80:80"
     networks:
-      - epn2-network # Conectado al puente
-    depends_on:
-      - ventas-api
-      - despachos-api
+      - epn2-network
 
-# DEFINICIÓN DEL PUENTE (La red que los une)
 networks:
   epn2-network:
     driver: bridge

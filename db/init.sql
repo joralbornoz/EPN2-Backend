@@ -1,3 +1,14 @@
+-- Crear el usuario si no existe y permitirle conexión remota
+CREATE USER IF NOT EXISTS 'epn2_user'@'%' IDENTIFIED BY 'epn2_password';
+
+-- Darle todos los privilegios sobre la base de datos
+GRANT ALL PRIVILEGES ON epn2_db.* TO 'epn2_user'@'%';
+
+-- Asegurar que root también pueda entrar desde cualquier lugar (opcional para debug)
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
+
+FLUSH PRIVILEGES;
+
 -- 1. Crear la tabla para el microservicio de Ventas
 CREATE TABLE IF NOT EXISTS ventas (
     id_venta BIGINT AUTO_INCREMENT PRIMARY KEY,

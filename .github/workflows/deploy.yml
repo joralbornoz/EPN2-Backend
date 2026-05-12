@@ -1,7 +1,7 @@
 name: Deploy Backend EPN2
 on:
   push:
-    branches: [ "deploy" ] # RÚBRICA IE7: Activación automática
+    branches: [ "deploy" ]
 
 jobs:
   build-and-push:
@@ -18,18 +18,22 @@ jobs:
 
       - name: Build y Push de Imágenes
         run: |
-          # 1. Construcción (IE1)
-          docker compose build
+          # 1. Construcción forzando el nombre del proyecto como 'epn2'
+          # Esto hace que las imágenes se llamen epn2-ventas-api, epn2-despachos-api, etc.
+          docker compose -p epn2 build
           
-          # 2. Etiquetado (IE3)
-          docker tag epn2-backend-ventas-api joralbornozm/epn2-ventas:latest
-          docker tag epn2-backend-despachos-api joralbornozm/epn2-despachos:latest
-          docker tag epn2-backend-mysql-db joralbornozm/epn2-db:latest
+          # 2. Listar imágenes para verificar (esto ayuda a ver si hubo algún cambio)
+          docker images
           
-          # 3. Publicación (IE3)
-          docker push joralbornozm/epn2-ventas:latest
-          docker push joralbornozm/epn2-despachos:latest
-          docker push joralbornozm/epn2-db:latest
+          # 3. Etiquetado usando el nombre fijo 'epn2'
+          docker tag epn2-ventas-api ${{ secrets.DOCKER_USERNAME }}/epn2-ventas:latest
+          docker tag epn2-despachos-api ${{ secrets.DOCKER_USERNAME }}/epn2-despachos:latest
+          docker tag epn2-mysql-db ${{ secrets.DOCKER_USERNAME }}/epn2-db:latest
+          
+          # 4. Publicación
+          docker push ${{ secrets.DOCKER_USERNAME }}/epn2-ventas:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/epn2-despachos:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/epn2-db:latest
 
       - name: Desplegar en EC2 via SSH
         uses: appleboy/ssh-action@master
@@ -40,9 +44,7 @@ jobs:
           script: |
             mkdir -p ~/epn2-backend
             cd ~/epn2-backend
-            # Descargamos el compose actualizado desde GitHub
-            curl -L https://raw.githubusercontent.com/joralbornozm/EPN2-Backend/deploy/docker-compose.yml -o docker-compose.yml
-            # Detenemos, bajamos imágenes de Docker Hub y levantamos
+            curl -L https://raw.githubusercontent.com/${{ github.repository_owner }}/EPN2-Backend/deploy/docker-compose.yml -o docker-compose.yml
             docker compose down || true
             docker compose pull
             docker compose up -d

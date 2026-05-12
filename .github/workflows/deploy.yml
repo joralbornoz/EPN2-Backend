@@ -18,19 +18,12 @@ jobs:
 
       - name: Build y Push de Imágenes
         run: |
-          # 1. Construcción forzando el nombre del proyecto como 'epn2'
-          # Esto hace que las imágenes se llamen epn2-ventas-api, epn2-despachos-api, etc.
-          docker compose -p epn2 build
+          # 1. Construir las imágenes
+          # Como el docker-compose.yml tiene la propiedad 'image', 
+          # las imágenes ya salen con el nombre de tu Docker Hub.
+          docker compose build
           
-          # 2. Listar imágenes para verificar (esto ayuda a ver si hubo algún cambio)
-          docker images
-          
-          # 3. Etiquetado usando el nombre fijo 'epn2'
-          docker tag epn2-ventas-api ${{ secrets.DOCKER_USERNAME }}/epn2-ventas:latest
-          docker tag epn2-despachos-api ${{ secrets.DOCKER_USERNAME }}/epn2-despachos:latest
-          docker tag epn2-mysql-db ${{ secrets.DOCKER_USERNAME }}/epn2-db:latest
-          
-          # 4. Publicación
+          # 2. Subir directamente (ya tienen el nombre correcto según tu log)
           docker push ${{ secrets.DOCKER_USERNAME }}/epn2-ventas:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/epn2-despachos:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/epn2-db:latest
@@ -44,7 +37,10 @@ jobs:
           script: |
             mkdir -p ~/epn2-backend
             cd ~/epn2-backend
-            curl -L https://raw.githubusercontent.com/${{ github.repository_owner }}/EPN2-Backend/deploy/docker-compose.yml -o docker-compose.yml
+            # Descargamos el compose de la rama deploy
+            curl -L https://raw.githubusercontent.com/${{ github.repository }}/deploy/docker-compose.yml -o docker-compose.yml
+            
+            # Limpieza y despliegue
             docker compose down || true
             docker compose pull
             docker compose up -d

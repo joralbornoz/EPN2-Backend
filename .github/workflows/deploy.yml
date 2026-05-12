@@ -31,3 +31,20 @@ jobs:
           docker push ${{ secrets.DOCKER_USERNAME }}/epn2-ventas:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/epn2-despachos:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/epn2-db:latest
+        # ... (pasos anteriores de build y push) ...
+
+      - name: Desplegar Backend en EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.AWS_EC2_IP }}
+          username: ec2-user
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Crear carpeta del proyecto si no existe
+            mkdir -p ~/epn2-backend
+            cd ~/epn2-backend
+            # Descargar el docker-compose.yml desde el repo (o puedes copiarlo vía SCP)
+            curl -O https://raw.githubusercontent.com/joralbornoz/EPN2-Backend/deploy/docker-compose.yml
+            # Bajar imágenes nuevas y levantar
+            docker compose pull
+            docker compose up -d

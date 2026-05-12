@@ -1,19 +1,22 @@
-# Etapa 1: Build con Maven
-FROM maven:3.8.5-openjdk-17 AS build
+# ETAPA 1: Construcción (Maven)
+FROM maven:3.8.5-openjdk-17-slim AS build
 WORKDIR /app
+# Optimización: Descargar dependencias primero para cachear capas
 COPY pom.xml .
-RUN mvn dependency:go-offline
-COPY src src
-RUN mvn clean package -DskipTests
+RUN mvn dependency:go-offline -B
+COPY src ./src
+RUN mvn package -DskipTests
 
-# Etapa 2: Ejecución (JRE)
-FROM eclipse-temurin:17-jre-alpine
-# RÚBRICA IE1/IE6: Crear usuario no root (Buenas prácticas de seguridad)
-RUN addgroup -S spring && adduser -S spring -G spring
+# ETAPA 2: Ejecución (Runtime seguro)
+FROM openjdk:17-jdk-slim
+WORKDIR /app
+
+# RÚBRICA: Crear usuario NO-ROOT para máxima seguridad
+RUN groupadd -r spring && useradd -g spring -r spring
 USER spring:spring
 
-WORKDIR /app
-# Copiamos el jar compilado
-COPY --from=build /app/target/*.jar app.jar
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Copiar solo el ejecutable de la etapa anterior
+COPY --from=build --chown=spring:spring /app/target/*.jar app.jar
+
+# Límites de memoria configurados desde el arranque
+ENTRYPOINT ["java", "-Xmx256m", "-jar", "app.jar"]

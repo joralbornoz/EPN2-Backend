@@ -1,65 +1,58 @@
+version: '3.8'
+
 services:
   mysql-db:
-    build: ./db
     image: joralbornozm/epn2-db:latest
     container_name: epn2-db
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: epn2_db
-      MYSQL_USER: epn2_user
-      MYSQL_PASSWORD: epn2_password
+    networks:
+      - epn2-network # Conectado al puente
     ports:
       - "3306:3306"
     volumes:
       - epn2_db_data:/var/lib/mysql
-    deploy:
-      resources:
-        limits:
-          memory: 300M
 
   ventas-api:
-    build: ./Springboot-API-REST
     image: joralbornozm/epn2-ventas:latest
     container_name: ventas-api
     restart: on-failure
-    environment:
-      - DB_ENDPOINT=mysql-db
-      - DB_PORT=3306
-      - DB_NAME=epn2_db
-      - DB_USER=epn2_user
-      - DB_PASSWORD=epn2_password
-      # SOLUCIÓN AL ERROR DE PUBLIC KEY
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/epn2_db?allowPublicKeyRetrieval=true&useSSL=false
-    ports:
-      - "8081:8081"
     depends_on:
       - mysql-db
-    deploy:
-      resources:
-        limits:
-          memory: 350M
+    networks:
+      - epn2-network # Conectado al puente
+    ports:
+      - "8081:8081"
 
   despachos-api:
-    build: ./Springboot-API-REST-DESPACHO
     image: joralbornozm/epn2-despachos:latest
     container_name: despachos-api
     restart: on-failure
-    environment:
-      - DB_ENDPOINT=mysql-db
-      - DB_PORT=3306
-      - DB_NAME=epn2_db
-      - DB_USER=epn2_user
-      - DB_PASSWORD=epn2_password
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/epn2_db?allowPublicKeyRetrieval=true&useSSL=false
-    ports:
-      - "8080:8080"
     depends_on:
       - mysql-db
-    deploy:
-      resources:
-        limits:
-          memory: 350M
+    networks:
+      - epn2-network # Conectado al puente
+    ports:
+      - "8080:8080"
+
+  epn2-frontend-app:
+    image: joralbornozm/epn2-frontend:latest
+    container_name: epn2-frontend-app
+    restart: always
+    ports:
+      - "80:80"
+    networks:
+      - epn2-network # Conectado al puente
+    depends_on:
+      - ventas-api
+      - despachos-api
+
+# DEFINICIÓN DEL PUENTE (La red que los une)
+networks:
+  epn2-network:
+    driver: bridge
 
 volumes:
-  epn2_db_data: # IE3: Persistencia de datos asegurada
+  epn2_db_data:
